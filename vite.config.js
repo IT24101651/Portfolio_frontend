@@ -12,6 +12,12 @@ export default defineConfig({
     fs: {
       allow: [root],
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: resolve(root, 'dist'),

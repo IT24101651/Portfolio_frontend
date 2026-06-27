@@ -465,11 +465,25 @@ export default function AdminPage({ onNavigateHome }) {
     setError('');
 
     try {
-      const [analyticsData, messagesData, projectsData] = await Promise.all([
+      const [analyticsResult, messagesResult, projectsResult] = await Promise.allSettled([
         apiRequest('/admin/analytics', { token: currentToken }),
         apiRequest('/admin/messages', { token: currentToken }),
         apiRequest('/admin/projects', { token: currentToken }),
       ]);
+
+      const rejectedResults = [analyticsResult, messagesResult, projectsResult].filter(
+        (result) => result.status === 'rejected',
+      );
+      const unauthorizedResult = rejectedResults.find((result) => result.reason?.status === 401);
+
+      if (unauthorizedResult) {
+        handleLogout();
+        return;
+      }
+
+      setAnalytics(analyticsResult.status === 'fulfilled' ? analyticsResult.value : null);
+      setMessages(messagesResult.status === 'fulfilled' && Array.isArray(messagesResult.value) ? messagesResult.value : []);
+      setProjects(projectsResult.status === 'fulfilled' && Array.isArray(projectsResult.value) ? projectsResult.value : []);
 
       try {
         const contentData = await fetchEditableContent();
@@ -478,9 +492,13 @@ export default function AdminPage({ onNavigateHome }) {
         setContent(cloneEditableContent(defaultEditableContent));
       }
 
-      setAnalytics(analyticsData);
-      setMessages(Array.isArray(messagesData) ? messagesData : []);
-      setProjects(Array.isArray(projectsData) ? projectsData : []);
+      if (rejectedResults.length) {
+        setError(
+          rejectedResults.length === 3
+            ? 'Unable to reach the backend API. Check that the server is running and reload the page.'
+            : 'Some dashboard data could not be loaded. The available sections are still shown below.',
+        );
+      }
     } catch (requestError) {
       if (requestError.status === 401) {
         handleLogout();

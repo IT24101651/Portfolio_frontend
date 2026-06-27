@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiRequest } from '../admin/adminApi';
+import { projects as localProjects } from '../data/siteData';
 import AnimatedSection from '../components/ui/AnimatedSection';
 import ProjectCard from '../components/ui/ProjectCard';
 import SectionHeading from '../components/ui/SectionHeading';
@@ -18,10 +19,14 @@ function normalizeProject(project, index) {
   return {
     title: project?.title || 'Untitled Project',
     description: project?.description || '',
-    tech: Array.isArray(project?.technologies) ? project.technologies.filter(Boolean) : [],
-    github: project?.githubLink || '',
-    live: project?.liveDemo || '',
-    badge: project?.category || 'Project',
+    tech: Array.isArray(project?.technologies)
+      ? project.technologies.filter(Boolean)
+      : Array.isArray(project?.tech)
+        ? project.tech.filter(Boolean)
+        : [],
+    github: project?.githubLink || project?.github || '',
+    live: project?.liveDemo || project?.live || '',
+    badge: project?.category || project?.badge || 'Project',
     accent: projectAccents[index % projectAccents.length],
   };
 }
@@ -45,8 +50,16 @@ export default function ProjectsSection({ id }) {
         }
       } catch (requestError) {
         if (!cancelled) {
-          setProjects([]);
-          setError(requestError.message || 'Unable to load projects.');
+          const fallbackProjects = Array.isArray(localProjects)
+            ? localProjects.map((project, index) => normalizeProject(project, index))
+            : [];
+
+          setProjects(fallbackProjects);
+          setError(
+            fallbackProjects.length
+              ? ''
+              : requestError.message || 'Unable to load projects.',
+          );
         }
       } finally {
         if (!cancelled) {

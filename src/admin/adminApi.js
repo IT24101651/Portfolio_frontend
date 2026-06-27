@@ -1,8 +1,22 @@
 export const ADMIN_TOKEN_KEY = 'portfolio_admin_token';
 export const ADMIN_PROFILE_KEY = 'portfolio_admin_profile';
 const runtimeEnv = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : {};
+const DEFAULT_API_BASE = '/api';
 
-export const API_BASE = runtimeEnv.VITE_API_BASE_URL || 'http://localhost:5000/api';
+function normalizeApiBase(value) {
+  if (typeof value !== 'string') {
+    return DEFAULT_API_BASE;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return DEFAULT_API_BASE;
+  }
+
+  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+}
+
+export const API_BASE = normalizeApiBase(runtimeEnv.VITE_API_BASE_URL || runtimeEnv.VITE_API_URL);
 
 export function loadAdminSession() {
   if (typeof window === 'undefined') {
@@ -36,15 +50,25 @@ export function clearAdminSession() {
 }
 
 export async function apiRequest(path, { method = 'GET', token = '', body } = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: {
-      Accept: 'application/json',
-      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers: {
+        Accept: 'application/json',
+        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch (cause) {
+    const error = new Error(
+      `Unable to reach the backend API at ${API_BASE}. Make sure the backend server is running and the API base URL is correct.`,
+    );
+    error.cause = cause;
+    throw error;
+  }
 
   let payload = null;
 
