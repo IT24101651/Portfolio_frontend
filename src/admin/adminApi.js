@@ -1,7 +1,9 @@
 export const ADMIN_TOKEN_KEY = 'portfolio_admin_token';
 export const ADMIN_PROFILE_KEY = 'portfolio_admin_profile';
 const runtimeEnv = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : {};
-const DEFAULT_API_BASE = '/api';
+const DEFAULT_API_BASE = runtimeEnv.PROD
+  ? 'https://portfoliobackend-production-fb6a.up.railway.app/api'
+  : '/api';
 
 function normalizeApiBase(value) {
   if (typeof value !== 'string') {
