@@ -49,6 +49,7 @@ import {
   SiVscodium,
   SiTensorflow,
 } from 'react-icons/si';
+import { normalizeLinkHref } from '../utils/linkHref';
 
 export const iconCatalog = {
   brain: FaBrain,
@@ -121,6 +122,7 @@ export const defaultEditableContent = {
     chips: ['Data Science', 'Full Stack Development', 'Machine Learning'],
     availability: 'Open for internships and graduate opportunities',
     avatarSrc: '/profile-avatar.jpeg',
+    avatarObjectPosition: 'center center',
   },
   about: {
     eyebrow: 'About Me',
@@ -248,6 +250,38 @@ export const defaultEditableContent = {
       },
     ],
   },
+  certifications: {
+    eyebrow: 'Certifications',
+    title: 'Learning milestones that show steady technical growth.',
+    description:
+      'These certificates can be connected to verified course completion pages or uploaded proof files.',
+    items: [
+      {
+        title: 'Python for Beginners',
+        issuer: 'Introductory Programming',
+        year: '2024',
+        link: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
+      },
+      {
+        title: 'Machine Learning Fundamentals',
+        issuer: 'Applied AI',
+        year: '2024',
+        link: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
+      },
+      {
+        title: 'Data Science Essentials',
+        issuer: 'Data Analytics',
+        year: '2024',
+        link: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
+      },
+      {
+        title: 'Git & GitHub',
+        issuer: 'Developer Workflow',
+        year: '2024',
+        link: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
+      },
+    ],
+  },
   resume: {
     eyebrow: 'Resume',
     name: 'Kumarasooriyar Paviththiran',
@@ -268,6 +302,9 @@ export const defaultEditableContent = {
       'Cloud deployment and collaborative development',
     ],
     buttonLabel: 'Download Resume',
+    resumeFileUrl: '',
+    resumeFileName: '',
+    resumeFileDataUrl: '',
   },
   contact: {
     eyebrow: 'Contact',
@@ -315,14 +352,41 @@ export function cloneEditableContent(content = defaultEditableContent) {
   return JSON.parse(JSON.stringify(content));
 }
 
+export function getSharedSocialLinks(contactDetails = [], fallbackLinks = []) {
+  const sharedIconKeys = ['github', 'linkedin', 'email'];
+  const detailsByKey = new Map(
+    Array.isArray(contactDetails)
+      ? contactDetails
+          .filter((item) => item && sharedIconKeys.includes(item.iconKey) && item.href)
+          .map((item) => [
+            item.iconKey,
+            {
+              label: item.label || item.iconKey,
+              href: normalizeLinkHref(item.href, item.label || item.iconKey),
+              iconKey: item.iconKey,
+            },
+          ])
+      : [],
+  );
+
+  const sharedLinks = sharedIconKeys.map((iconKey) => detailsByKey.get(iconKey)).filter(Boolean);
+
+  return sharedLinks.length ? sharedLinks : fallbackLinks;
+}
+
 export function normalizeEditableContent(content) {
   const source = content && typeof content === 'object' ? content : {};
   const base = cloneEditableContent(defaultEditableContent);
 
-  return {
+  const normalized = {
     ...base,
     ...source,
-    socialLinks: Array.isArray(source.socialLinks) && source.socialLinks.length ? source.socialLinks : base.socialLinks,
+    socialLinks: Array.isArray(source.socialLinks) && source.socialLinks.length
+      ? source.socialLinks.map((link) => ({
+          ...link,
+          href: normalizeLinkHref(link.href, link.label),
+        }))
+      : base.socialLinks,
     home: {
       ...base.home,
       ...(source.home || {}),
@@ -337,6 +401,11 @@ export function normalizeEditableContent(content) {
       ...(source.skills || {}),
       groups: Array.isArray(source.skills?.groups) && source.skills.groups.length ? source.skills.groups : base.skills.groups,
     },
+    certifications: {
+      ...base.certifications,
+      ...(source.certifications || {}),
+      items: Array.isArray(source.certifications?.items) ? source.certifications.items : base.certifications.items,
+    },
     resume: {
       ...base.resume,
       ...(source.resume || {}),
@@ -346,8 +415,16 @@ export function normalizeEditableContent(content) {
       ...(source.contact || {}),
       directDetails:
         Array.isArray(source.contact?.directDetails) && source.contact.directDetails.length
-          ? source.contact.directDetails
+          ? source.contact.directDetails.map((detail) => ({
+              ...detail,
+              href: normalizeLinkHref(detail.href, detail.label),
+            }))
           : base.contact.directDetails,
     },
+  };
+
+  return {
+    ...normalized,
+    socialLinks: getSharedSocialLinks(normalized.contact.directDetails, normalized.socialLinks),
   };
 }

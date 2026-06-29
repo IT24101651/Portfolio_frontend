@@ -5,6 +5,7 @@ import AnimatedSection from '../components/ui/AnimatedSection';
 import SectionHeading from '../components/ui/SectionHeading';
 import SocialLink from '../components/ui/SocialLink';
 import { defaultEditableContent, iconCatalog } from '../data/editableContent';
+import { getLinkRel, getLinkTarget, normalizeLinkHref } from '../utils/linkHref';
 
 const initialForm = {
   name: '',
@@ -70,13 +71,14 @@ export default function ContactSection({ id, content, socialLinks }) {
               <div className="mt-6 space-y-4">
                 {(contact.directDetails || []).map((item) => {
                   const Icon = iconCatalog[item.iconKey] || iconCatalog.email;
+                  const href = normalizeLinkHref(item.href, item.label);
 
                   return (
                     <a
                       key={item.label}
-                      href={item.href}
-                      target={item.href.startsWith('mailto:') || item.href.startsWith('tel:') ? undefined : '_blank'}
-                      rel={item.href.startsWith('mailto:') || item.href.startsWith('tel:') ? undefined : 'noreferrer'}
+                      href={href}
+                      target={getLinkTarget(href)}
+                      rel={getLinkRel(href)}
                       className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:-translate-y-0.5 hover:border-cyan-300/30"
                     >
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/20 to-blue-500/20 text-cyan-300">

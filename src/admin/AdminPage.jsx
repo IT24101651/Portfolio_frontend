@@ -9,6 +9,7 @@ import {
   FaEdit,
   FaEnvelope,
   FaExternalLinkAlt,
+  FaCertificate,
   FaGithub,
   FaFileAlt,
   FaFolderOpen,
@@ -56,6 +57,7 @@ const sidebarGroups = [
       { key: 'home', label: 'Home', description: 'Hero copy', icon: FaHome },
       { key: 'about', label: 'About', description: 'Profile section', icon: FaUser },
       { key: 'skills', label: 'Skills', description: 'Tool stack', icon: FaCode },
+      { key: 'certifications', label: 'Certifications', description: 'Learning proofs', icon: FaCertificate },
       { key: 'resume', label: 'Resume', description: 'CV content', icon: FaFileAlt },
       { key: 'contact', label: 'Contact', description: 'Form copy', icon: FaEnvelope },
     ],
@@ -70,7 +72,7 @@ const sidebarGroups = [
   },
 ];
 
-const editablePanels = new Set(['home', 'about', 'skills', 'resume', 'contact']);
+const editablePanels = new Set(['home', 'about', 'skills', 'certifications', 'resume', 'contact']);
 const browserColors = ['#7c3aed', '#3b82f6', '#06b6d4', '#f59e0b', '#ec4899'];
 
 function formatDate(value) {
@@ -411,7 +413,8 @@ function buildQuickActions(setActivePanel, beginCreateProject) {
   return [
     { label: 'Add New Project', description: 'Create a new project', onClick: beginCreateProject, icon: FaPlus },
     { label: 'Edit Home', description: 'Hero copy and buttons', onClick: () => setActivePanel('home'), icon: FaHome },
-    { label: 'Edit Skills', description: 'Skill groups and levels', onClick: () => setActivePanel('skills'), icon: FaCode },
+    { label: 'Edit Skills', description: 'Skill groups and labels', onClick: () => setActivePanel('skills'), icon: FaCode },
+    { label: 'Edit Certifications', description: 'Certificate cards', onClick: () => setActivePanel('certifications'), icon: FaCertificate },
     { label: 'Update Resume', description: 'Resume preview content', onClick: () => setActivePanel('resume'), icon: FaFileAlt },
     { label: 'Open Contact', description: 'Contact page text', onClick: () => setActivePanel('contact'), icon: FaEnvelope },
   ];
@@ -578,7 +581,8 @@ export default function AdminPage({ onNavigateHome }) {
     setContentSuccess('');
 
     try {
-      const savedContent = await saveEditableContent(token, content);
+      const contentSnapshot = cloneEditableContent(content);
+      const savedContent = await saveEditableContent(token, contentSnapshot);
       setContent(normalizeEditableContent(savedContent));
       setContentSuccess('Content saved successfully.');
 
@@ -1173,8 +1177,8 @@ export default function AdminPage({ onNavigateHome }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <MetricCard
               title="Editable Sections"
-              value="5"
-              helper="Home, About, Skills, Resume, Contact"
+              value="6"
+              helper="Home, About, Skills, Certifications, Resume, Contact"
               icon={FaEdit}
               tone="violet"
             />
@@ -1218,6 +1222,7 @@ export default function AdminPage({ onNavigateHome }) {
             onChange={setContent}
             onSave={handleContentSave}
             saving={contentSaving}
+            token={token}
             activeSection={activePanel}
             error={contentError}
             success={contentSuccess}
@@ -1354,7 +1359,7 @@ export default function AdminPage({ onNavigateHome }) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                     <p className="text-sm text-slate-400">Section editor</p>
-                    <p className="mt-2 text-lg font-semibold text-white">Home, About, Skills, Resume, Contact</p>
+                    <p className="mt-2 text-lg font-semibold text-white">Home, About, Skills, Certifications, Resume, Contact</p>
                   </div>
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                     <p className="text-sm text-slate-400">Focus</p>

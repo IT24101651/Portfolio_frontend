@@ -43,7 +43,9 @@ export default function ResumeSection({ id, content }) {
 
             <button
               type="button"
-              onClick={downloadResumePdf}
+              onClick={() => {
+                void downloadResumePdf(resume);
+              }}
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-fuchsia-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-glow transition hover:-translate-y-0.5"
             >
               <FaFilePdf className="h-4 w-4" />

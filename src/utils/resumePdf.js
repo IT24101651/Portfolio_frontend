@@ -1,8 +1,59 @@
+import { API_BASE } from '../admin/adminApi.js';
+
 function escapePdfText(text) {
   return text.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
 }
 
-export function downloadResumePdf() {
+function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadDataUrl(dataUrl, fileName) {
+  const anchor = document.createElement('a');
+  anchor.href = dataUrl;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
+function getBackendAssetBase() {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  if (API_BASE.startsWith('http://') || API_BASE.startsWith('https://')) {
+    return new URL(API_BASE).origin;
+  }
+
+  return window.location.origin;
+}
+
+function resolveBackendAssetUrl(assetPath) {
+  if (!assetPath) {
+    return '';
+  }
+
+  if (/^(data:|blob:|https?:)/i.test(assetPath)) {
+    return assetPath;
+  }
+
+  const base = getBackendAssetBase();
+  if (!base) {
+    return assetPath;
+  }
+
+  return new URL(assetPath, base).toString();
+}
+
+function generateFallbackResumePdf() {
   const lines = [
     'Kumarasooriyar Paviththiran',
     'Data Science Undergraduate | Full Stack Developer',
@@ -52,12 +103,33 @@ export function downloadResumePdf() {
   pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${startXref}\n%%EOF`;
 
   const blob = new Blob([pdf], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = 'Kumarasooriyar_Paviththiran_Resume.pdf';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return blob;
+}
+
+export async function downloadResumePdf(resume = {}) {
+  const fileName = resume.resumeFileName || 'Kumarasooriyar_Paviththiran_Resume.pdf';
+  const assetPath = resume.resumeFileUrl || resume.resumeFileDataUrl || '';
+
+  if (typeof assetPath === 'string' && assetPath.startsWith('data:')) {
+    downloadDataUrl(assetPath, fileName);
+    return;
+  }
+
+  if (typeof assetPath === 'string' && assetPath) {
+    const resolvedUrl = resolveBackendAssetUrl(assetPath);
+
+    try {
+      const response = await fetch(resolvedUrl, { mode: 'cors' });
+      if (response.ok) {
+        const blob = await response.blob();
+        downloadBlob(blob, fileName);
+        return;
+      }
+    } catch {
+      // Fall through to the generated resume below if the uploaded file cannot be fetched.
+    }
+  }
+
+  const blob = generateFallbackResumePdf();
+  downloadBlob(blob, fileName);
 }

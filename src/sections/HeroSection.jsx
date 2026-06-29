@@ -15,7 +15,7 @@ const floatingTech = [
   { label: 'Data', bottom: '10%', right: '12%', delay: 1.2 },
 ];
 
-export default function HeroSection({ id, content, socialLinks }) {
+export default function HeroSection({ id, content, resume, socialLinks }) {
   const [avatarSrc, setAvatarSrc] = useState('/profile-avatar.jpeg');
   const hero = { ...defaultEditableContent.home, ...(content || {}) };
   const links = Array.isArray(socialLinks) && socialLinks.length ? socialLinks : defaultEditableContent.socialLinks;
@@ -60,7 +60,9 @@ export default function HeroSection({ id, content, socialLinks }) {
               </a>
               <button
                 type="button"
-                onClick={downloadResumePdf}
+                onClick={() => {
+                  void downloadResumePdf(resume);
+                }}
                 className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:text-cyan-300 dark:text-slate-200"
               >
                 {hero.secondaryCtaLabel || 'Download Resume'}
@@ -111,6 +113,7 @@ export default function HeroSection({ id, content, socialLinks }) {
                       src={avatarSrc}
                       onError={() => setAvatarSrc(profileAvatar)}
                       alt={`${hero.name} profile photo`}
+                      style={{ objectPosition: hero.avatarObjectPosition || 'center center' }}
                       className="relative h-[20rem] w-[20rem] rounded-full object-cover shadow-2xl shadow-cyan-950/40"
                     />
                   </div>

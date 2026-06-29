@@ -15,37 +15,27 @@ export default function SkillGroupCard({ group }) {
         </div>
         <div>
           <h3 className="font-display text-xl font-semibold text-slate-950 dark:text-white">{title}</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-300">{skills.length} core tools</p>
+          <p className="text-sm text-slate-500 dark:text-slate-300">{skills.length} skills</p>
         </div>
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 flex flex-wrap gap-3">
         {skills.map((skill) => {
           const SkillIcon = skill.icon;
 
           return (
-            <div key={skill.name}>
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <SkillIcon className="h-4 w-4 text-cyan-300" />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{skill.name}</span>
-                </div>
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{skill.level}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-slate-200/70 dark:bg-slate-800/80">
-                <motion.div
-                  className={`h-full rounded-full bg-gradient-to-r ${accent}`}
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${skill.level}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                />
-              </div>
-            </div>
+            <motion.span
+              key={skill.name}
+              whileHover={{ y: -2 }}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/70 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-sm transition-colors hover:border-white/20 hover:bg-white/90 dark:bg-slate-950/30 dark:text-slate-200 dark:hover:bg-slate-950/45"
+            >
+              <span className={`h-2.5 w-2.5 rounded-full bg-gradient-to-r ${accent}`} />
+              <SkillIcon className="h-4 w-4 text-cyan-400 dark:text-cyan-300" />
+              <span>{skill.name}</span>
+            </motion.span>
           );
         })}
       </div>
     </motion.article>
   );
 }
-

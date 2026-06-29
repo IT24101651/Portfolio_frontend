@@ -12,13 +12,12 @@ import ContactSection from './sections/ContactSection';
 import GithubStatsSection from './sections/GithubStatsSection';
 import HeroSection from './sections/HeroSection';
 import ProjectsSection from './sections/ProjectsSection';
-import ResumeSection from './sections/ResumeSection';
 import SkillsSection from './sections/SkillsSection';
 import { ThemeProvider } from './context/ThemeContext';
 import { defaultEditableContent, normalizeEditableContent } from './data/editableContent';
 import { useActiveSection } from './hooks/useActiveSection';
 
-const SECTION_IDS = ['home', 'about', 'skills', 'projects', 'resume', 'contact'];
+const SECTION_IDS = ['home', 'about', 'skills', 'projects', 'certifications', 'contact'];
 
 function useClientPathname() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
@@ -54,13 +53,12 @@ function AppShell({ content }) {
       <Navbar activeSection={activeSection} />
 
       <main className="relative z-10">
-        <HeroSection id="home" content={content?.home} socialLinks={content?.socialLinks} />
+        <HeroSection id="home" content={content?.home} resume={content?.resume} socialLinks={content?.socialLinks} />
         <AboutSection id="about" content={content?.about} />
         <SkillsSection id="skills" content={content?.skills} />
         <ProjectsSection id="projects" />
-        <CertificationsSection />
+        <CertificationsSection id="certifications" content={content?.certifications} />
         <GithubStatsSection />
-        <ResumeSection id="resume" content={content?.resume} />
         <ContactSection id="contact" content={content?.contact} socialLinks={content?.socialLinks} />
       </main>
 

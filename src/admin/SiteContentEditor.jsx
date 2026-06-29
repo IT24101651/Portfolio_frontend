@@ -1,3 +1,7 @@
+import profileAvatar from '../assets/profile-avatar.svg';
+import { getSharedSocialLinks } from '../data/editableContent';
+import { uploadResumeFile } from './adminApi';
+
 function Field({ label, helper, ...props }) {
   return (
     <label className="grid gap-2 text-sm font-medium text-slate-200">
@@ -35,6 +39,53 @@ function joinLines(values) {
   return Array.isArray(values) ? values.join('\n') : '';
 }
 
+const AVATAR_MAX_DIMENSION = 1200;
+const AVATAR_EXPORT_TYPE = 'image/webp';
+const AVATAR_EXPORT_QUALITY = 0.92;
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(String(reader.result || ''));
+    };
+    reader.onerror = () => {
+      reject(reader.error || new Error('Unable to read image file'));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Unable to load image preview'));
+    image.src = src;
+  });
+}
+
+async function compressAvatarFile(file) {
+  const dataUrl = await readFileAsDataUrl(file);
+  const image = await loadImage(dataUrl);
+  const scale = Math.min(1, AVATAR_MAX_DIMENSION / Math.max(image.width, image.height));
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    throw new Error('Unable to prepare image for saving');
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+  context.drawImage(image, 0, 0, width, height);
+
+  return canvas.toDataURL(AVATAR_EXPORT_TYPE, AVATAR_EXPORT_QUALITY);
+}
+
 function SaveButton({ saving, onSave }) {
   return (
     <button
@@ -68,6 +119,7 @@ export default function SiteContentEditor({
   onChange,
   onSave,
   saving,
+  token = '',
   activeSection = 'home',
   error = '',
   success = '',
@@ -76,8 +128,59 @@ export default function SiteContentEditor({
   const home = safeContent.home || {};
   const about = safeContent.about || {};
   const skills = safeContent.skills || {};
+  const certifications = safeContent.certifications || {};
   const resume = safeContent.resume || {};
   const contact = safeContent.contact || {};
+
+  async function handleAvatarUpload(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      window.alert('Please choose an image file for the avatar.');
+      return;
+    }
+
+    try {
+      const avatarSrc = await compressAvatarFile(file);
+      updateSection('home', {
+        avatarSrc,
+        avatarObjectPosition: home.avatarObjectPosition || 'center center',
+      });
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Unable to process that image.');
+    }
+  }
+
+  async function handleResumeUpload(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      window.alert('Please choose a PDF file for the resume.');
+      return;
+    }
+
+    try {
+      const resumeFileDataUrl = await readFileAsDataUrl(file);
+      const uploaded = await uploadResumeFile(token, file.name, resumeFileDataUrl);
+      updateSection('resume', {
+        resumeFileName: uploaded?.resumeFileName || file.name,
+        resumeFileUrl: uploaded?.resumeFileUrl || '',
+        resumeFileDataUrl: '',
+      });
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Unable to upload that resume file.');
+    }
+  }
 
   function updateSection(section, patch) {
     onChange({
@@ -101,11 +204,36 @@ export default function SiteContentEditor({
     });
   }
 
+  function updateCertification(index, patch) {
+    updateSection('certifications', {
+      items: (certifications.items || []).map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
+    });
+  }
+
+  function addCertification() {
+    updateSection('certifications', {
+      items: [...(certifications.items || []), { title: '', issuer: '', year: '', link: '' }],
+    });
+  }
+
+  function removeCertification(index) {
+    updateSection('certifications', {
+      items: (certifications.items || []).filter((_, itemIndex) => itemIndex !== index),
+    });
+  }
+
   function updateContactDetail(index, patch) {
-    updateSection('contact', {
-      directDetails: (contact.directDetails || []).map((detail, detailIndex) =>
-        detailIndex === index ? { ...detail, ...patch } : detail,
-      ),
+    const directDetails = (contact.directDetails || []).map((detail, detailIndex) =>
+      detailIndex === index ? { ...detail, ...patch } : detail,
+    );
+
+    onChange({
+      ...safeContent,
+      contact: {
+        ...(safeContent.contact || {}),
+        directDetails,
+      },
+      socialLinks: getSharedSocialLinks(directDetails, safeContent.socialLinks || []),
     });
   }
 
@@ -202,12 +330,49 @@ export default function SiteContentEditor({
             onChange={(event) => updateSection('home', { tertiaryCtaHref: event.target.value })}
             placeholder="#contact"
           />
-          <Field
-            label="Avatar URL"
-            value={home.avatarSrc || ''}
-            onChange={(event) => updateSection('home', { avatarSrc: event.target.value })}
-            placeholder="/profile-avatar.jpeg"
-          />
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid gap-4">
+            <label className="grid gap-2 text-sm font-medium text-slate-200">
+              <span className="text-slate-300">Avatar photo</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="rounded-2xl border border-white/10 bg-[#0d1220] px-4 py-3 text-slate-100 outline-none transition file:mr-4 file:rounded-full file:border-0 file:bg-violet-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-violet-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20"
+              />
+              <span className="text-xs font-normal text-slate-500">
+                Choose a local image from your computer. It will be resized before saving to keep the content light.
+              </span>
+            </label>
+
+            <Field
+              label="Avatar crop focus"
+              value={home.avatarObjectPosition || ''}
+              onChange={(event) => updateSection('home', { avatarObjectPosition: event.target.value })}
+              placeholder="center center"
+              helper="Manual crop control for the round photo. Examples: center, center top, 50% 20%."
+            />
+          </div>
+
+          <div className="rounded-[1.5rem] border border-white/10 bg-[#0d1220] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-white">Current avatar</p>
+              <span className="text-xs uppercase tracking-[0.24em] text-slate-500">Preview</span>
+            </div>
+            <div className="mt-4 grid place-items-center">
+              <img
+                src={home.avatarSrc || '/profile-avatar.jpeg'}
+                onError={(event) => {
+                  event.currentTarget.src = profileAvatar;
+                }}
+                alt="Avatar preview"
+                style={{ objectPosition: home.avatarObjectPosition || 'center center' }}
+                className="h-48 w-48 rounded-full object-cover shadow-2xl shadow-cyan-950/40"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="mt-4">
@@ -322,7 +487,7 @@ export default function SiteContentEditor({
     return (
       <SectionCard
         title="Skills"
-        description="Update the visible skill group titles and the skill names and levels only."
+        description="Update the visible skill group titles and skill names only."
         action={<SaveButton saving={saving} onSave={onSave} />}
       >
         {error ? (
@@ -375,27 +540,111 @@ export default function SiteContentEditor({
               <div className="mt-4">
                 <TextArea
                   label="Skills"
-                  value={(group.skills || []).map((skill) => `${skill.name}|${skill.level}`).join('\n')}
+                  value={(group.skills || []).map((skill) => skill.name).join('\n')}
                   onChange={(event) => {
-                    const nextSkills = parseLines(event.target.value).map((line) => {
-                      const [namePart = '', levelPart = ''] = line.split('|');
-                      const parsedLevel = Number.parseInt(levelPart, 10);
-
-                      return {
-                        name: namePart.trim(),
-                        level: Number.isFinite(parsedLevel) ? parsedLevel : 0,
-                      };
-                    });
+                    const nextSkills = parseLines(event.target.value).map((line) => ({
+                      name: line.trim(),
+                    }));
 
                     updateSkillGroup(groupIndex, { skills: nextSkills });
                   }}
-                  helper="One skill per line in the format Name|Level."
-                  placeholder="React|88"
+                  helper="One skill per line."
+                  placeholder="React"
                 />
               </div>
             </div>
           ))}
         </div>
+      </SectionCard>
+    );
+  }
+
+  function renderCertifications() {
+    return (
+      <SectionCard
+        title="Certifications"
+        description="Create, update, and delete the certification cards shown on the portfolio."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <SaveButton saving={saving} onSave={onSave} />
+            <button
+              type="button"
+              onClick={addCertification}
+              className="inline-flex items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-100 transition hover:border-emerald-300/40 hover:bg-emerald-500/20"
+            >
+              Add Certification
+            </button>
+          </div>
+        }
+      >
+        {error ? (
+          <div className="mb-5 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {error}
+          </div>
+        ) : null}
+        {success ? (
+          <div className="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            {success}
+          </div>
+        ) : null}
+
+        {(certifications.items || []).length ? (
+          <div className="grid gap-4">
+            {(certifications.items || []).map((item, index) => (
+              <div key={`${item.title || 'certificate'}-${index}`} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/90">
+                      Certificate {index + 1}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-400">Edit the details that appear on the public card.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeCertification(index)}
+                    className="rounded-full border border-rose-500/20 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400/40 hover:bg-rose-500/15"
+                  >
+                    Delete
+                  </button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field
+                    label="Title"
+                    value={item.title || ''}
+                    onChange={(event) => updateCertification(index, { title: event.target.value })}
+                    placeholder="Python for Beginners"
+                  />
+                  <Field
+                    label="Issuer"
+                    value={item.issuer || ''}
+                    onChange={(event) => updateCertification(index, { issuer: event.target.value })}
+                    placeholder="Introductory Programming"
+                  />
+                </div>
+
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <Field
+                    label="Year"
+                    value={item.year || ''}
+                    onChange={(event) => updateCertification(index, { year: event.target.value })}
+                    placeholder="2024"
+                  />
+                  <Field
+                    label="Link"
+                    value={item.link || ''}
+                    onChange={(event) => updateCertification(index, { link: event.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-6 text-sm text-slate-400">
+            No certifications yet. Add one to create the first public card.
+          </div>
+        )}
       </SectionCard>
     );
   }
@@ -458,6 +707,26 @@ export default function SiteContentEditor({
             onChange={(event) => updateSection('resume', { buttonLabel: event.target.value })}
             placeholder="Download Resume"
           />
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <label className="grid gap-2 text-sm font-medium text-slate-200">
+            <span className="text-slate-300">Resume PDF</span>
+            <input
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={handleResumeUpload}
+              className="rounded-2xl border border-white/10 bg-[#0d1220] px-4 py-3 text-slate-100 outline-none transition file:mr-4 file:rounded-full file:border-0 file:bg-violet-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-violet-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20"
+            />
+            <span className="text-xs font-normal text-slate-500">
+              Choose a PDF from your computer. It will be stored with the site content and used by the Resume buttons.
+            </span>
+          </label>
+
+          <div className="rounded-[1.5rem] border border-white/10 bg-[#0d1220] p-4">
+            <p className="text-sm font-semibold text-white">Selected file</p>
+            <p className="mt-3 break-all text-sm text-slate-300">{resume.resumeFileName || 'No custom resume selected'}</p>
+          </div>
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -535,6 +804,9 @@ export default function SiteContentEditor({
         </div>
 
         <div className="mt-4 grid gap-4">
+          <p className="text-xs leading-6 text-slate-500">
+            GitHub, LinkedIn, and Email entries here also power the shared social links shown on Home and Contact.
+          </p>
           {(contact.directDetails || []).map((detail, index) => (
             <div key={`${detail.label || 'detail'}-${index}`} className="rounded-3xl border border-white/10 bg-white/5 p-4">
               <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/90">
@@ -566,6 +838,8 @@ export default function SiteContentEditor({
       return renderAbout();
     case 'skills':
       return renderSkills();
+    case 'certifications':
+      return renderCertifications();
     case 'resume':
       return renderResume();
     case 'contact':

@@ -102,3 +102,14 @@ export function saveEditableContent(token, content) {
     body: { content },
   });
 }
+
+export function uploadResumeFile(token, fileName, fileDataUrl) {
+  return apiRequest('/resume/upload', {
+    method: 'POST',
+    token,
+    body: {
+      fileName,
+      fileDataUrl,
+    },
+  });
+}
