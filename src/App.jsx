@@ -141,42 +141,49 @@ export default function App() {
     }
   }, [showSplash]);
 
+  const routeContent = isAdminRoute ? (
+    <AdminPage onNavigateHome={() => navigate('/')} />
+  ) : isProjectsRoute ? (
+    <div className="relative min-h-screen overflow-x-hidden">
+      <AmbientBackground />
+      <Navbar activeSection={null} currentPathname={pathname} onNavigate={navigate} />
+
+      <main className="relative z-10">
+        <ProjectsPage onBackHome={() => navigate('/')} />
+      </main>
+
+      <Footer />
+      <BackToTopButton />
+    </div>
+  ) : (
+    <AppShell
+      content={editableContent}
+      onViewAllProjects={() => navigate('/projects')}
+    />
+  );
+
   return (
     <ThemeProvider>
-      <AnimatePresence mode="wait">
-        {showSplash ? (
-          <SplashScreen key="splash-screen" onComplete={() => setShowSplash(false)} />
-        ) : (
+      <div className="relative min-h-screen overflow-x-hidden bg-[#02040b]">
+        <AnimatePresence mode="wait">
           <motion.div
             key={isAdminRoute ? 'admin-route' : isProjectsRoute ? 'projects-route' : 'portfolio-route'}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: showSplash ? 0 : 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
+            className={showSplash ? 'pointer-events-none select-none' : ''}
           >
-            {isAdminRoute ? (
-              <AdminPage onNavigateHome={() => navigate('/')} />
-            ) : isProjectsRoute ? (
-              <div className="relative min-h-screen overflow-x-hidden">
-                <AmbientBackground />
-                <Navbar activeSection={null} currentPathname={pathname} onNavigate={navigate} />
-
-                <main className="relative z-10">
-                  <ProjectsPage onBackHome={() => navigate('/')} />
-                </main>
-
-                <Footer />
-                <BackToTopButton />
-              </div>
-            ) : (
-              <AppShell
-                content={editableContent}
-                onViewAllProjects={() => navigate('/projects')}
-              />
-            )}
+            {routeContent}
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showSplash ? (
+            <SplashScreen key="splash-screen" onComplete={() => setShowSplash(false)} />
+          ) : null}
+        </AnimatePresence>
+      </div>
     </ThemeProvider>
   );
 }

@@ -3,13 +3,18 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') {
+      return 'dark';
+    }
 
-  useEffect(() => {
-    const storedTheme = window.localStorage.getItem('theme');
-    const initialTheme = storedTheme === 'light' ? 'light' : 'dark';
-    setTheme(initialTheme);
-  }, []);
+    try {
+      const storedTheme = window.localStorage.getItem('theme');
+      return storedTheme === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -36,4 +41,3 @@ export function useTheme() {
   }
   return context;
 }
-
