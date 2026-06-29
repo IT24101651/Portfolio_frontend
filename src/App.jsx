@@ -94,12 +94,7 @@ export default function App() {
       return false;
     }
 
-    const isPublicRoute = window.location.pathname !== '/admin' && !window.location.pathname.startsWith('/admin/');
-    try {
-      return isPublicRoute && window.sessionStorage.getItem('pavi-splash-seen') !== '1';
-    } catch {
-      return isPublicRoute;
-    }
+    return window.location.pathname !== '/admin' && !window.location.pathname.startsWith('/admin/');
   });
   const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
   const isProjectsRoute = pathname === '/projects';
@@ -128,18 +123,6 @@ export default function App() {
       cancelled = true;
     };
   }, [isAdminRoute]);
-
-  useEffect(() => {
-    if (!showSplash) {
-      return;
-    }
-
-    try {
-      window.sessionStorage.setItem('pavi-splash-seen', '1');
-    } catch {
-      // Ignore storage restrictions and still let the splash run once.
-    }
-  }, [showSplash]);
 
   const routeContent = isAdminRoute ? (
     <AdminPage onNavigateHome={() => navigate('/')} />
