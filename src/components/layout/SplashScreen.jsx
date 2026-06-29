@@ -63,7 +63,7 @@ export default function SplashScreen({ onComplete }) {
     let completeTimer = 0;
     const exitTimer = window.setTimeout(() => {
       setExiting(true);
-      completeTimer = window.setTimeout(onComplete, prefersReducedMotion ? 40 : 90);
+      completeTimer = window.setTimeout(onComplete, 0);
     }, 0);
 
     return () => {

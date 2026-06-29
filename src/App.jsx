@@ -168,10 +168,10 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.div
             key={isAdminRoute ? 'admin-route' : isProjectsRoute ? 'projects-route' : 'portfolio-route'}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: showSplash ? 0 : 1 }}
+            initial={false}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.25 }}
             className={showSplash ? 'pointer-events-none select-none' : ''}
           >
             {routeContent}
