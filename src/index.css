@@ -153,15 +153,15 @@ textarea {
 
 .splash-wave {
   stroke-dasharray: 18 18;
-  animation: splash-wave 2.4s linear infinite;
+  animation: splash-wave 3.8s linear infinite;
 }
 
 .splash-ping {
-  animation: splash-pulse 1.8s ease-in-out infinite;
+  animation: splash-pulse 2.8s ease-in-out infinite;
 }
 
 .splash-noise {
-  animation: splash-noise 2.6s ease-in-out infinite;
+  animation: splash-noise 3.2s ease-in-out infinite;
   background-image:
     radial-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px),
     radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);

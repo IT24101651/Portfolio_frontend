@@ -40,7 +40,7 @@ function useSplashProgress(durationMs) {
 
 export default function SplashScreen({ onComplete }) {
   const prefersReducedMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, []);
-  const durationMs = prefersReducedMotion ? 1000 : 2600;
+  const durationMs = prefersReducedMotion ? 1400 : 3800;
   const progress = useSplashProgress(durationMs);
   const [exiting, setExiting] = useState(false);
 
@@ -63,8 +63,8 @@ export default function SplashScreen({ onComplete }) {
     let completeTimer = 0;
     const exitTimer = window.setTimeout(() => {
       setExiting(true);
-      completeTimer = window.setTimeout(onComplete, 820);
-    }, prefersReducedMotion ? 120 : 260);
+      completeTimer = window.setTimeout(onComplete, 520);
+    }, prefersReducedMotion ? 180 : 420);
 
     return () => {
       window.clearTimeout(exitTimer);
@@ -98,7 +98,7 @@ export default function SplashScreen({ onComplete }) {
             className="mb-4 text-[0.65rem] font-semibold uppercase tracking-[0.42em] text-cyan-200/75 sm:text-xs"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: 'easeOut' }}
+            transition={{ duration: 1.15, ease: 'easeOut' }}
           >
             Loading portfolio
           </motion.p>
@@ -107,7 +107,7 @@ export default function SplashScreen({ onComplete }) {
             className="font-display text-4xl font-bold tracking-[0.14em] text-transparent sm:text-5xl lg:text-6xl splash-word"
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.35, ease: [0.22, 1, 0.36, 1] }}
           >
             PAVI
           </motion.h1>
