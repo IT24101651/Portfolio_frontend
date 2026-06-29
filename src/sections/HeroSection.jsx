@@ -32,7 +32,8 @@ export default function HeroSection({ id, content, resume, socialLinks }) {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: 'easeOut' }}
-            className="max-w-2xl"
+            className="max-w-2xl transform-gpu"
+            style={{ willChange: 'transform, opacity' }}
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm font-medium text-cyan-200">
               <span aria-hidden="true">{String.fromCodePoint(128075)}</span> {hero.greeting}
@@ -96,7 +97,8 @@ export default function HeroSection({ id, content, resume, socialLinks }) {
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }}
-            className="relative mx-auto w-full max-w-xl"
+            className="relative mx-auto w-full max-w-xl transform-gpu"
+            style={{ willChange: 'transform, opacity' }}
           >
             <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-fuchsia-500/20 blur-2xl" />
 
@@ -121,8 +123,14 @@ export default function HeroSection({ id, content, resume, socialLinks }) {
                   {floatingTech.map((item) => (
                     <motion.div
                       key={item.label}
-                      className="absolute rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-md"
-                      style={{ top: item.top, right: item.right, bottom: item.bottom, left: item.left }}
+                      className="absolute rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-md transform-gpu"
+                      style={{
+                        top: item.top,
+                        right: item.right,
+                        bottom: item.bottom,
+                        left: item.left,
+                        willChange: 'transform',
+                      }}
                       animate={{ y: [0, -12, 0] }}
                       transition={{ duration: 4.5, repeat: Infinity, delay: item.delay, ease: 'easeInOut' }}
                     >

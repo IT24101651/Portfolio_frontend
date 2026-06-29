@@ -13,15 +13,15 @@ export default function AnimatedSection({ children, className = '', id, delay = 
   return (
     <motion.section
       id={id}
-      className={`section-anchor section-gap ${className}`}
+      className={`section-anchor section-gap transform-gpu ${className}`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
       variants={sectionVariants}
       transition={{ delay }}
+      style={{ willChange: 'transform, opacity' }}
     >
       {children}
     </motion.section>
   );
 }
-

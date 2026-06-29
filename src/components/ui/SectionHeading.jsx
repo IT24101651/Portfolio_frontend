@@ -5,11 +5,12 @@ export default function SectionHeading({ eyebrow, title, description, align = 'l
 
   return (
     <motion.div
-      className={`mb-12 max-w-3xl ${alignClass}`}
+      className={`mb-12 max-w-3xl transform-gpu ${alignClass}`}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.4 }}
       transition={{ duration: 0.6 }}
+      style={{ willChange: 'transform, opacity' }}
     >
       {eyebrow ? (
         <p className="mb-3 text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300/90">
@@ -27,4 +28,3 @@ export default function SectionHeading({ eyebrow, title, description, align = 'l
     </motion.div>
   );
 }
-

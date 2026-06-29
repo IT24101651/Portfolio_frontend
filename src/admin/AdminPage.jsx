@@ -42,6 +42,7 @@ const initialProjectForm = {
   githubLink: '',
   liveDemo: '',
   category: '',
+  order: '',
 };
 
 const initialLoginForm = {
@@ -119,6 +120,7 @@ function toProjectForm(project) {
     githubLink: project?.githubLink || '',
     liveDemo: project?.liveDemo || '',
     category: project?.category || '',
+    order: project?.order ?? '',
   };
 }
 
@@ -636,6 +638,7 @@ export default function AdminPage({ onNavigateHome }) {
       githubLink: projectForm.githubLink.trim(),
       liveDemo: projectForm.liveDemo.trim(),
       category: projectForm.category.trim(),
+      order: projectForm.order,
     };
 
     try {
@@ -950,6 +953,17 @@ export default function AdminPage({ onNavigateHome }) {
               />
             </div>
 
+            <InputField
+              label="Order Number"
+              type="number"
+              min="0"
+              step="1"
+              value={projectForm.order}
+              onChange={(event) => setProjectForm((current) => ({ ...current, order: event.target.value }))}
+              placeholder="1"
+              required
+            />
+
             <TextAreaField
               label="Description"
               value={projectForm.description}
@@ -1024,6 +1038,9 @@ export default function AdminPage({ onNavigateHome }) {
                           <h3 className="text-lg font-semibold text-white">{project.title}</h3>
                           <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-xs font-semibold text-violet-200">
                             {project.category || 'Project'}
+                          </span>
+                          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200">
+                            Order {project.order ?? '—'}
                           </span>
                         </div>
                         <p className="max-w-3xl text-sm leading-7 text-slate-400">{project.description}</p>

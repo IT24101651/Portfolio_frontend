@@ -201,6 +201,7 @@ export const projects = [
     live: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
     accent: 'from-emerald-400 via-cyan-400 to-blue-500',
     badge: 'AI',
+    order: 1,
   },
   {
     title: 'SUSI Photography Website',
@@ -211,6 +212,7 @@ export const projects = [
     live: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
     accent: 'from-indigo-400 via-sky-500 to-cyan-400',
     badge: 'Full Stack',
+    order: 2,
   },
   {
     title: 'POS & Student Order System',
@@ -221,6 +223,7 @@ export const projects = [
     live: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
     accent: 'from-fuchsia-400 via-violet-500 to-blue-500',
     badge: 'POS',
+    order: 3,
   },
   {
     title: 'Mood-Based Movie Recommendation System',
@@ -231,6 +234,7 @@ export const projects = [
     live: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
     accent: 'from-orange-400 via-amber-400 to-yellow-300',
     badge: 'ML',
+    order: 4,
   },
   {
     title: 'Voting System for Reality Shows',
@@ -241,6 +245,7 @@ export const projects = [
     live: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
     accent: 'from-cyan-400 via-blue-500 to-indigo-500',
     badge: 'Backend',
+    order: 5,
   },
   {
     title: 'Online Bookstore Management System',
@@ -251,6 +256,7 @@ export const projects = [
     live: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
     accent: 'from-pink-400 via-fuchsia-500 to-violet-500',
     badge: 'Web',
+    order: 6,
   },
   {
     title: 'Automated Greenhouse System',
@@ -261,6 +267,7 @@ export const projects = [
     live: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
     accent: 'from-emerald-400 via-green-500 to-teal-400',
     badge: 'IoT',
+    order: 7,
   },
   {
     title: 'Smart Student Living Platform',
@@ -271,6 +278,7 @@ export const projects = [
     live: 'https://www.linkedin.com/in/paviththiran-kumarasooriyar',
     accent: 'from-sky-400 via-cyan-500 to-blue-500',
     badge: 'Mobile',
+    order: 8,
   },
 ];
 

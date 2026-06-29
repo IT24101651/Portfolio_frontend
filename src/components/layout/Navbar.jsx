@@ -4,20 +4,41 @@ import { FaBars, FaTimes } from 'react-icons/fa';
 import { navItems } from '../../data/siteData';
 import ThemeToggle from '../ui/ThemeToggle';
 
-export default function Navbar({ activeSection }) {
+function resolveNavHref(itemHref) {
+  return itemHref === '#home' ? '/' : `/${itemHref}`;
+}
+
+export default function Navbar({ activeSection, currentPathname = '/', onNavigate }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const isHomeRoute = currentPathname === '/';
+
+  function handleNavClick(itemHref, event) {
+    if (isHomeRoute || !onNavigate) {
+      setMenuOpen(false);
+      return;
+    }
+
+    event.preventDefault();
+    onNavigate(resolveNavHref(itemHref));
+    setMenuOpen(false);
+  }
 
   return (
     <motion.header
       initial={{ y: -24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="fixed inset-x-0 top-0 z-50"
+      className="fixed inset-x-0 top-0 z-50 transform-gpu"
+      style={{ willChange: 'transform, opacity' }}
     >
       <div className="section-shell pt-4">
         <nav className="glass-panel premium-border rounded-full px-4 py-3 shadow-soft">
           <div className="flex items-center justify-between gap-4">
-            <a href="#home" className="inline-flex items-center gap-3">
+            <a
+              href={isHomeRoute ? '#home' : '/'}
+              onClick={(event) => handleNavClick('#home', event)}
+              className="inline-flex items-center gap-3"
+            >
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-fuchsia-500 font-display text-sm font-bold text-slate-950 shadow-glow">
                 KP
               </div>
@@ -34,7 +55,8 @@ export default function Navbar({ activeSection }) {
                 return (
                   <a
                     key={item.label}
-                    href={item.href}
+                    href={isHomeRoute ? item.href : resolveNavHref(item.href)}
+                    onClick={(event) => handleNavClick(item.href, event)}
                     aria-current={active ? 'page' : undefined}
                     className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                       active
@@ -70,7 +92,8 @@ export default function Navbar({ activeSection }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="section-shell lg:hidden"
+            className="section-shell transform-gpu lg:hidden"
+            style={{ willChange: 'transform, opacity' }}
           >
             <div className="glass-panel premium-border mt-3 rounded-3xl p-3">
               <div className="grid gap-2">
@@ -80,8 +103,8 @@ export default function Navbar({ activeSection }) {
                   return (
                     <a
                       key={item.label}
-                      href={item.href}
-                      onClick={() => setMenuOpen(false)}
+                      href={isHomeRoute ? item.href : resolveNavHref(item.href)}
+                      onClick={(event) => handleNavClick(item.href, event)}
                       aria-current={active ? 'page' : undefined}
                       className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
                         active ? 'bg-cyan-300/15 text-cyan-300' : 'text-slate-700 hover:bg-white/5 dark:text-slate-200'

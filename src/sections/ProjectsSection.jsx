@@ -1,79 +1,13 @@
-import { useEffect, useState } from 'react';
-import { apiRequest } from '../admin/adminApi';
-import { projects as localProjects } from '../data/siteData';
+import { motion } from 'framer-motion';
 import AnimatedSection from '../components/ui/AnimatedSection';
 import ProjectCard from '../components/ui/ProjectCard';
 import SectionHeading from '../components/ui/SectionHeading';
+import { FaArrowRight } from 'react-icons/fa';
+import { useProjects } from '../hooks/useProjects';
 
-const projectAccents = [
-  'from-emerald-400 via-cyan-400 to-blue-500',
-  'from-indigo-400 via-sky-500 to-cyan-400',
-  'from-fuchsia-400 via-violet-500 to-blue-500',
-  'from-orange-400 via-amber-400 to-yellow-300',
-  'from-cyan-400 via-blue-500 to-indigo-500',
-  'from-pink-400 via-fuchsia-500 to-violet-500',
-  'from-lime-400 via-green-500 to-emerald-500',
-];
-
-function normalizeProject(project, index) {
-  return {
-    title: project?.title || 'Untitled Project',
-    description: project?.description || '',
-    tech: Array.isArray(project?.technologies)
-      ? project.technologies.filter(Boolean)
-      : Array.isArray(project?.tech)
-        ? project.tech.filter(Boolean)
-        : [],
-    github: project?.githubLink || project?.github || '',
-    live: project?.liveDemo || project?.live || '',
-    badge: project?.category || project?.badge || 'Project',
-    accent: projectAccents[index % projectAccents.length],
-  };
-}
-
-export default function ProjectsSection({ id }) {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadProjects() {
-      setLoading(true);
-      setError('');
-
-      try {
-        const data = await apiRequest('/projects');
-        if (!cancelled) {
-          setProjects(Array.isArray(data) ? data.map((project, index) => normalizeProject(project, index)) : []);
-        }
-      } catch (requestError) {
-        if (!cancelled) {
-          const fallbackProjects = Array.isArray(localProjects)
-            ? localProjects.map((project, index) => normalizeProject(project, index))
-            : [];
-
-          setProjects(fallbackProjects);
-          setError(
-            fallbackProjects.length
-              ? ''
-              : requestError.message || 'Unable to load projects.',
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadProjects();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+export default function ProjectsSection({ id, onViewAll }) {
+  const { projects, loading, error } = useProjects();
+  const featuredProjects = projects.slice(0, 2);
 
   return (
     <AnimatedSection id={id}>
@@ -81,8 +15,22 @@ export default function ProjectsSection({ id }) {
         <SectionHeading
           eyebrow="Projects"
           title="Selected work that mixes engineering discipline with polished presentation."
-          description="Each project card includes a snapshot, stack tags, and direct links so the work feels easy to explore."
+          description="Here are two featured projects from the collection. Tap through to the full archive if you want the rest."
         />
+
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-slate-500 dark:text-slate-300">
+            Showing the strongest two projects here so the section stays focused.
+          </p>
+          <motion.button
+            type="button"
+            onClick={onViewAll}
+            className="inline-flex items-center justify-center gap-2 self-start rounded-full border border-cyan-300/25 bg-cyan-300/10 px-5 py-3 text-sm font-semibold text-cyan-200 transition hover:-translate-y-0.5 hover:bg-cyan-300/15"
+          >
+            View All Projects
+            <FaArrowRight className="h-4 w-4" />
+          </motion.button>
+        </div>
 
         {loading ? (
           <div className="rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-8 text-sm text-slate-400">
@@ -92,10 +40,10 @@ export default function ProjectsSection({ id }) {
           <div className="rounded-[1.5rem] border border-rose-400/20 bg-rose-400/10 px-5 py-8 text-sm text-rose-200">
             {error}
           </div>
-        ) : projects.length ? (
+        ) : featuredProjects.length ? (
           <div className="grid gap-6 lg:grid-cols-2">
-            {projects.map((project) => (
-              <ProjectCard key={project.title} project={project} />
+            {featuredProjects.map((project, index) => (
+              <ProjectCard key={project.title} project={project} entryDelay={index * 0.12} entryDirection="left" />
             ))}
           </div>
         ) : (

@@ -1,15 +1,20 @@
 import { motion } from 'framer-motion';
 import { FaExternalLinkAlt, FaGithub } from 'react-icons/fa';
 
-export default function ProjectCard({ project }) {
+export default function ProjectCard({ project, entryDelay = 0, entryDirection = 'left' }) {
   const hasGithub = Boolean(project.github);
   const hasLiveDemo = Boolean(project.live);
+  const initialX = entryDirection === 'right' ? 48 : -48;
 
   return (
     <motion.article
-      whileHover={{ y: -10, rotateX: 1.5, rotateY: -1.5 }}
-      transition={{ type: 'spring', stiffness: 230, damping: 20 }}
-      className="group overflow-hidden rounded-[1.75rem] glass-panel premium-border"
+      initial={{ opacity: 0, x: initialX }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, amount: 0.25 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: entryDelay }}
+      whileHover={{ y: -10, rotateX: 1.5, rotateY: -1.5, transition: { type: 'spring', stiffness: 230, damping: 20 } }}
+      className="group overflow-hidden rounded-[1.75rem] glass-panel premium-border transform-gpu"
+      style={{ willChange: 'transform, opacity' }}
     >
       <div className={`relative h-52 bg-gradient-to-br ${project.accent} p-5`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.35),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.18),transparent_24%)]" />
